@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package sensor;
+
+option go_package = "proto/sensorpb";
+
+// Pesan data sensor yang dikirim dari MicroA ke MicroB
+message SensorData {
+  double sensor_value = 1;   // nilai sensor
+  string sensor_type  = 2;   // jenis sensor (temperature, humidity, dsb)
+  string id1          = 3;   // huruf kapital
+  int32  id2          = 4;   // angka integer
+  string timestamp    = 5;   // format ISO8601 (atau RFC3339)
+}
+
+// Request untuk stream data (dari MicroA ke MicroB)
+message StreamRequest {
+  SensorData data = 1;
+}
+
+// Response dari MicroB setelah menerima data
+message StreamResponse {
+  string status  = 1; // "ok" atau "error"
+  string message = 2; // pesan tambahan
+}
+
+// Service definisi untuk komunikasi MicroA → MicroB
+service SensorService {
+  // Stream satu arah (client → server) 
+  // MicroA akan stream data ke MicroB secara terus-menerus
+  rpc StreamData(stream StreamRequest) returns (StreamResponse);
+}

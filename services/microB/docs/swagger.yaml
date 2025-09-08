@@ -1,0 +1,251 @@
+basePath: /api
+definitions:
+  dto.LoginRequest:
+    properties:
+      password:
+        example: password123
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  dto.RegisterRequest:
+    properties:
+      password:
+        example: newpassword
+        type: string
+      role:
+        example: viewer
+        type: string
+      username:
+        example: newuser
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@datastream.local
+    name: API Support
+  description: This is the backend service for receiving and managing sensor data.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Microservice B API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with username and password
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register new user
+      tags:
+      - auth
+  /sensors:
+    delete:
+      consumes:
+      - application/json
+      description: Delete sensor data based on various filters
+      parameters:
+      - description: ID1 filter
+        in: query
+        name: id1
+        type: string
+      - description: ID2 filter
+        in: query
+        name: id2
+        type: integer
+      - description: Start timestamp (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: End timestamp (RFC3339)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete sensor data by filter
+      tags:
+      - sensors
+    get:
+      consumes:
+      - application/json
+      description: Retrieve sensor data based on various filters
+      parameters:
+      - description: ID1 filter
+        in: query
+        name: id1
+        type: string
+      - description: ID2 filter
+        in: query
+        name: id2
+        type: integer
+      - description: Start timestamp (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: End timestamp (RFC3339)
+        in: query
+        name: to
+        type: string
+      - default: 10
+        description: Limit number of results
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get sensor data by filter
+      tags:
+      - sensors
+    put:
+      consumes:
+      - application/json
+      description: Update sensor data values based on various filters
+      parameters:
+      - description: ID1 filter
+        in: query
+        name: id1
+        type: string
+      - description: ID2 filter
+        in: query
+        name: id2
+        type: integer
+      - description: Start timestamp (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: End timestamp (RFC3339)
+        in: query
+        name: to
+        type: string
+      - description: New sensor value
+        in: query
+        name: new_value
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update sensor data by filter
+      tags:
+      - sensors
+swagger: "2.0"
