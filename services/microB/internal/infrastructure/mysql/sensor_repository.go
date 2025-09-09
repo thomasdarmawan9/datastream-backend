@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/thomasdarmawan9/datastream-backend/services/microB/internal/domain"
@@ -33,6 +34,8 @@ func (r *sensorRepo) StoreBatch(sensors []*domain.SensorData) error {
 	defer stmt.Close()
 
 	for _, s := range sensors {
+		log.Printf("Inserting: value=%f type=%s id1=%s id2=%d ts=%v",
+			s.SensorValue, s.SensorType, s.ID1, s.ID2, s.TS)
 		_, err := stmt.Exec(s.SensorValue, s.SensorType, s.ID1, s.ID2, s.TS)
 		if err != nil {
 			tx.Rollback()

@@ -1,1 +1,0 @@
-// interface adapters for microA

@@ -1,9 +1,23 @@
-FROM golang:1.22-alpine AS build
-WORKDIR /app
-COPY . .
-RUN go build -o /microa ./cmd/microa
+# pakai golang buat build
+FROM golang:1.22 AS builder
 
-FROM alpine:3.18
-COPY --from=build /microa /microa
-EXPOSE 8090
-ENTRYPOINT ["/microa"]
+WORKDIR /app
+
+# copy go mod
+COPY go.mod go.sum ./
+RUN go mod download
+
+# copy source
+COPY . .
+
+# build binary microA
+RUN go build -o microa ./services/microA/cmd/microa
+
+# runtime image
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/microa .
+
+CMD ["./microa"]

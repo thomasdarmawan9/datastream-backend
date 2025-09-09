@@ -3,6 +3,8 @@ package grpc
 import (
 	"io"
 	"log"
+	"sync"
+	"time"
 
 	sensorpb "github.com/thomasdarmawan9/datastream-backend/proto/sensorpb"
 
@@ -20,39 +22,88 @@ func NewSensorGRPCServer(repo domain.SensorRepository) *SensorGRPCServer {
 
 // StreamData menerima stream dari MicroA
 func (s *SensorGRPCServer) StreamData(stream sensorpb.SensorService_StreamDataServer) error {
-	var sensors []*domain.SensorData
+	var (
+		mu      sync.Mutex
+		sensors []*domain.SensorData
+	)
+
+	// ticker buat auto flush tiap 5 detik
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	// goroutine buat auto flush
+	done := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				mu.Lock()
+				if len(sensors) > 0 {
+					log.Printf("Auto flushing %d records...", len(sensors))
+					if err := s.sensorRepo.StoreBatch(sensors); err != nil {
+						log.Printf("Error storing batch: %v", err)
+					} else {
+						log.Printf("Successfully flushed %d records", len(sensors))
+						sensors = nil // kosongkan buffer
+					}
+				}
+				mu.Unlock()
+			case <-done:
+				return
+			}
+		}
+	}()
 
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {
-			// Simpan batch ke DB ketika stream selesai
+			// flush terakhir
+			mu.Lock()
 			if len(sensors) > 0 {
 				if err := s.sensorRepo.StoreBatch(sensors); err != nil {
+					log.Printf("Error storing batch on EOF: %v", err)
+					mu.Unlock()
+					close(done)
 					return stream.SendAndClose(&sensorpb.StreamResponse{
 						Status:  "error",
 						Message: err.Error(),
 					})
 				}
+				log.Printf("Successfully flushed %d records on EOF", len(sensors))
 			}
+			mu.Unlock()
+
+			close(done)
 			return stream.SendAndClose(&sensorpb.StreamResponse{
 				Status:  "ok",
 				Message: "data stored",
 			})
 		}
 		if err != nil {
+			close(done)
 			return err
 		}
 
 		data := req.GetData()
+
+		// parse timestamp
+		t, err := time.Parse(time.RFC3339, data.Timestamp)
+		if err != nil {
+			log.Printf("Invalid timestamp: %v, using now()", err)
+			t = time.Now()
+		}
+
+		mu.Lock()
 		sensors = append(sensors, &domain.SensorData{
 			SensorValue: data.SensorValue,
 			SensorType:  data.SensorType,
 			ID1:         data.Id1,
 			ID2:         int(data.Id2),
-			// di sini timestamp string harus di-parse (misalnya pakai time.Parse RFC3339)
-			// sementara anggap valid
-			// TS: ...
+			TS:          t,
+			CreatedAt:   time.Now(),
 		})
+		mu.Unlock()
+
 		log.Printf("Received data: %+v", data)
 	}
 }

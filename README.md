@@ -66,7 +66,7 @@ flowchart LR
     end
 
     subgraph B[Microservice B]
-        B1[gRPC / MQTT Receiver]
+        B1[gRPC]
         B2[Processing Layer]
         B3[MySQL Database]
         B4[REST API + Auth]
@@ -128,13 +128,10 @@ docker-compose up --build
 ### Configuration
 Create a `.env` file:
 ```env
-DB_HOST=mysql
-DB_PORT=3306
-DB_USER=root
-DB_PASS=password
-DB_NAME=datastream
-
-JWT_SECRET=your_secret_key
+DB_DSN=root@tcp(127.0.0.1:3306)/datastream?parseTime=true
+JWT_SECRET=supersecret
+PORT=8080
+GRPC_PORT=50051
 ```
 
 ---

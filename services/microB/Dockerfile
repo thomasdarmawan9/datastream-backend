@@ -1,9 +1,18 @@
-FROM golang:1.22-alpine AS build
-WORKDIR /app
-COPY . .
-RUN go build -o /microb ./cmd/microb
+FROM golang:1.22 AS builder
 
-FROM alpine:3.18
-COPY --from=build /microb /microb
-EXPOSE 8080
-ENTRYPOINT ["/microb"]
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -o microb ./services/microB/cmd/microb
+
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/microb .
+
+CMD ["./microb"]
