@@ -152,26 +152,17 @@ Authorization: Bearer <your_token>
 
 ---
 
-## 🧪 Testing
-
-```bash
-# run unit tests
-go test ./...
-```
-
----
-
 ## 📦 Deployment
 
 1. Run services using `docker-compose`  
-2. (Optional) Add **NGINX Load Balancer** + **Auto-scaling** with Kubernetes or Docker Swarm  
+2. Docker for deployment, run with `docker compose up -d --build`  
 
 ---
 
 ## 📈 Scalability & Performance
 - Multiple **Microservice A** instances → each representing one sensor type.  
 - **Microservice B** can run multiple replicas for load balancing.  
-- Supports high throughput by decoupling via gRPC/MQTT.  
+- Supports high throughput by decoupling via gRPC.  
 
 ---
 
@@ -179,6 +170,6 @@ go test ./...
 - [Go](https://go.dev/)  
 - [Echo Framework](https://echo.labstack.com/)  
 - [MySQL](https://www.mysql.com/)  
-- [gRPC](https://grpc.io/) / [MQTT](https://mqtt.org/)  
+- [gRPC](https://grpc.io/) 
 - [Docker](https://www.docker.com/)  
 - [Swagger](https://swagger.io/)  

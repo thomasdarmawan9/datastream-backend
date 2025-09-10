@@ -10,6 +10,12 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
 
   microb:
     build:
@@ -21,7 +27,9 @@ services:
       JWT_SECRET: supersecret
       PORT: 8080
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy   # tunggu MySQL siap
+    restart: on-failure              # kalau sempat gagal, auto-retry
     ports:
       - "8080:8080"
       - "50051:50051"
@@ -35,7 +43,9 @@ services:
       MICROB_GRPC_ADDR: microb:50051
       GEN_FREQ_MS: 1000
     depends_on:
-      - microb
+      microb:
+        condition: service_started   # pastikan microb sudah start
+    restart: on-failure
 
 volumes:
   db_data:
